@@ -88,5 +88,12 @@ def get_subtitle(url):
         # after extracting subtitles, remove zip file
         os.remove(filename)
 
+
+def main():
+    try:
+        search_subtitle(sys.argv[1])
+    except IndexError:
+        sys.exit('Usage: yify <movie>')
+
 if __name__ == '__main__':
-    search_subtitle(sys.argv[1])
+    main()
