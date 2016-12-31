@@ -18,7 +18,7 @@ def get(url):
     r.raise_for_status()
 
     # use html2text to transfer html to readable text
-    h = HTML2Text()
+    h = HTML2Text(bodywidth=0)
     h.ignore_links = False
     text = h.handle(r.text)
 
@@ -32,12 +32,14 @@ def search_subtitle(query):
     # try to find subtitle link in this page
     m = re.search(r'(\/movie-imdb\/.+)\)', text)
     if m:
+        print("Found subtitle link {}".format(m.group(1)))
         # call get_subtitles() to get all available subtitles
         get_subtitles('{}{}'.format(BASE_URL, m.group(1)))
 
 
 def get_subtitles(url):
     '''Find all subtitles url for the movie.'''
+    print("Getting subtitle at {}".format(url))
     # get webpage content for this url
     text = get(url)
 
@@ -45,8 +47,10 @@ def get_subtitles(url):
     subs = []
 
     for line in text.splitlines():
+        if line == '':
+            continue
         # find upvote count, subtitle language and subtitle link
-        m = re.search(r'upvote(\d+).+\[(\w+) subtitle.*\((.*?)\)', line)
+        m = re.search(r'(\d+)\| (\w+)\|.*?\((.+?)\)', line)
         if not m:
             continue
 
@@ -58,6 +62,9 @@ def get_subtitles(url):
                 'link': link
             })
     # sort list by upvote count
+    if not subs:
+        print('No subs found')
+        return
     subs.sort(key=lambda x: int(x['up']), reverse=True)
 
     # only download subtitle which has the most upvote count
@@ -68,7 +75,7 @@ def get_subtitle(url):
     '''Download the specific subtitle.'''
     text = get('{}{}'.format(BASE_URL, url))
 
-    m = re.search(r'\[Download subtitle\]\((.*\n.*)\)', text)
+    m = re.search(r'\[DOWNLOAD SUBTITLE\]\((.*?)\)', text)
     if m:
         # remove all newline
         link = m.group(1).replace('\n', '')
