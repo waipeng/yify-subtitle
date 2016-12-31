@@ -29,12 +29,28 @@ def search_subtitle(query):
     '''Search subtitle by query in parameter.'''
     text = get('{}/search?q={}'.format(BASE_URL, query))
 
+    # using set here because the html has duplicate links
+    results = set()
     # try to find subtitle link in this page
-    m = re.search(r'(\/movie-imdb\/.+)\)', text)
-    if m:
-        print("Found subtitle link {}".format(m.group(1)))
+    for line in text.splitlines():
+        m = re.search(r' \* .+?\[(.*?)\].*?(\/movie-imdb\/.+)\)', line)
+        if m:
+            title = m.group(1).encode('ascii', 'ignore')
+            link = m.group(2).encode('ascii', 'ignore')
+            results.add((title, link))
+    if len(results) == 0:
+        print("No subs found")
+    elif len(results) > 1:
+        print("Multiple results found, please refine your search.")
+        print("Alternatively, you can search using the id (e.g. tt0094291)")
+        for result in results:
+            (_, _, uid) = result[1].split('/')
+            print("- {} ({})".format(result[0], uid))
+    else:
+        (title, link) = results.pop()
+        print("Found subtitle {} link {}".format(title, link))
         # call get_subtitles() to get all available subtitles
-        get_subtitles('{}{}'.format(BASE_URL, m.group(1)))
+        get_subtitles('{}{}'.format(BASE_URL, link))
 
 
 def get_subtitles(url):
