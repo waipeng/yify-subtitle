@@ -13,7 +13,7 @@ setup(
     author="David",
     packages=find_packages(),
     install_requires=[
-        'html2text==2014.12.29',
+        'html2text>=2014.12.29',
         'requests==2.5.1',
     ],
     long_description=long_description,
